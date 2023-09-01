@@ -1,0 +1,1 @@
+#The model will use the MNIST dataset, contain my own CNN
