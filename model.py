@@ -160,18 +160,17 @@ def main():
 
     image_path = "" #add the path for the image that you want the modil to predict
 
-    if not os.path.exists(image_path):
-        print("Image file not found!")
-        return
-    
-    # Preprocess image
-    image_array = model.preprocess_image(image_path)
+    if os.path.exists(image_path):
+        # Preprocess image
+        image_array = model.preprocess_image(image_path)
 
-    # Make prediction
-    prediction = model.predict(model_name, image_array)
+        # Make prediction
+        prediction = model.predict(model_name, image_array)
+        
+        # Print prediction
+        model.print_prediction(prediction)
     
-    # Print prediction
-    model.print_prediction(prediction)
+    
 
 
 
