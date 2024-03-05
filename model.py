@@ -1,10 +1,11 @@
 #The model will use the MNIST dataset, contain my own CNN
 #http://yann.lecun.com/exdb/mnist/
 
-
 import tensorflow as tf
 import tensorflow_datasets as tfds
 import os
+import numpy as np
+from PIL import Image
 
 class Model:
     def __init__(self):
@@ -97,7 +98,7 @@ class Model:
         
         
         self.models[model_name].compile(
-            optimizer=tf.keras.optimizers.Adam(0.001),
+            optimizer = tf.keras.optimizers.legacy.Adam(learning_rate=0.001),
             loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
             metrics=[tf.keras.metrics.SparseCategoricalAccuracy()],
         )
@@ -120,13 +121,58 @@ class Model:
         path = os.path.join(path,  model_name+".keras")
 
         self.models[model_name].save(path)
+    
+    def preprocess_image(self, image_path):
+        # Load image
+        img = Image.open(image_path).convert('L')  # Convert to grayscale
+        img = img.resize((28, 28))  # Resize to MNIST image size
+        img_array = np.array(img)  # Convert to numpy array
+        img_array = img_array / 255.0  # Normalize pixel values
+        img_array = np.expand_dims(img_array, axis=0)  # Add batch dimension
+        return img_array
+
+    def predict(self, model_name, images):
+        # Load model
+        model_path = os.path.join(os.getcwd(), "out", f"{model_name}.keras")
+        model = tf.keras.models.load_model(model_path)
+
+        # Preprocess images
+        images = tf.convert_to_tensor(images, dtype=tf.float32) / 255.
+
+        # Make predictions
+        predictions = model.predict(images)
+
+        return predictions
+    
+    def print_prediction(self, prediction):
+        predicted_class = np.argmax(prediction)
+        print("Predicted class:", predicted_class)
+        print("Confidence:", prediction[0][predicted_class])
 
     
     
 
 def main():
+    model_name = "tf_docs"
+
     model = Model()
-    model.custom_cnn("medium")
+    model.custom_cnn(model_name)
+
+    image_path = "" #add the path for the image that you want the modil to predict
+
+    if not os.path.exists(image_path):
+        print("Image file not found!")
+        return
+    
+    # Preprocess image
+    image_array = model.preprocess_image(image_path)
+
+    # Make prediction
+    prediction = model.predict(model_name, image_array)
+    
+    # Print prediction
+    model.print_prediction(prediction)
+
 
 
 if __name__ == "__main__":
